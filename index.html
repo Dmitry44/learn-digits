@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Learn Digits</title>
+    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+</head>
+
+<body>
+    <div class="ld-app" x-data="data">
+        <h1>Learn Digits</h1>
+        <div class="ld-toolbar">
+
+            <label for="ld-language">Language:</label>
+            <select id="ld-language" x-model="language">
+                <option value="en">English</option>
+                <option value="de">Deutsch</option>
+            </select>
+
+            <button @click="playing = !playing">
+                <span x-show="!playing">Play</span>
+                <span x-show="playing">Pause</span>
+            </button>
+
+        </div>
+
+        <div class="ld-input">
+            <input type="text" x-model="userInput" />
+        </div>
+
+        <div>userInput: <span x-text="userInput"></span></div>
+        <div>currentAudio: <span x-text="currentAudio?.input"></span> - <span x-text="currentAudio?.file"></span></div>
+
+    </div>
+</body>
+
+<script>
+    const playAudio = (audio) => {
+        audio.pause();
+        audio.currentTime = 0;
+        audio.play();
+    }
+
+    document.addEventListener('alpine:init', () => {
+        Alpine.data('data', () => ({
+            init() {
+                this.$watch('userInput', () => {
+                    this.checkInput();
+                });
+                this.$watch('playing', (val) => {
+                    if (val) this.loadNextAudio('init')
+                    else this.stopAudio();
+                });
+                this.successAudio.onended = () => this.loadNextAudio('successAudio.onended');
+                this.errorAudio.onended = () => this.loadNextAudio('errorAudio.onended');
+            },
+
+            playing: false,
+            language: 'en',
+            currentAudio: null,
+            userInput: '',
+            playAttempts: 0,
+            audioElement: null,
+            successAudio: new Audio('audio/success.mp3'),
+            errorAudio: new Audio('audio/error.mp3'),
+
+            nextAudioLoading: false,
+            loadNextAudio(e) {
+                if (this.nextAudioLoading) return;
+                console.log(e, this.userInput);
+                this.nextAudioLoading = true;
+                try {
+                    this.stopAudio();
+                    this.userInput = '';
+                    this.playAttempts = 0;
+                    let files = this[this.language].files
+                    this.currentAudio = files[Math.floor(Math.random() * files.length)];
+                    this.createAudioElement();
+                    this.playAudio();
+                }
+                finally {
+                    this.nextAudioLoading = false;
+                }
+            },
+
+            createAudioElement() {
+                if (!this.playing) return;
+                this.audioElement = new Audio(this.currentAudio.file);
+                this.audioElement.onended = () => {
+                    this.playAttempts++;
+                    if (this.playAttempts < 3) {
+                        setTimeout(() => this.playAudio(), 1000);
+                    } else {
+                        this.playError();
+                    }
+                };
+            },
+
+            playAudio() {
+                if (!this.playing) return;
+                if (this.audioElement) {
+                    this.audioElement.currentTime = 0;
+                    this.audioElement.play();
+                }
+            },
+
+            stopAudio() {
+                if (this.audioElement) {
+                    this.audioElement.pause();
+                    this.audioElement.currentTime = 0;
+                }
+            },
+
+            checkInput() {
+                if (this.userInput === this.currentAudio.input) {
+                    this.stopAudio();
+                    this.playSuccess();
+                }
+            },
+
+            playSuccess() {
+                playAudio(this.successAudio);
+            },
+
+            playError() {
+                playAudio(this.errorAudio);
+            },
+
+            en: { files:
+                    [
+                        { input: '1', file: 'audio/en/1.wav'},
+                        { input: '2', file: 'audio/en/2.wav'},
+                        { input: '3', file: 'audio/en/3.wav'},
+                        { input: '4', file: 'audio/en/4.wav'},
+                    ]
+            },
+            de: { files:
+                    [
+                        { input: '1', file: 'audio/de/1.mp3'},
+                        { input: '2', file: 'audio/de/2.mp3'},
+                        { input: '3', file: 'audio/de/3.mp3'},
+                        { input: '4', file: 'audio/de/4.mp3'},
+                        { input: '5', file: 'audio/de/5.mp3'},
+                    ]
+            },
+        }))
+    })
+</script>
+
+</html>`
