@@ -17,7 +17,7 @@
                 <option value="de">Deutsch</option>
             </select>
 
-            <button @click="playing = !playing">
+            <button @click="playing = !playing; $refs.input.focus();">
                 <span x-show="!playing">Play</span>
                 <span x-show="playing">Pause</span>
             </button>
@@ -25,7 +25,7 @@
         </div>
 
         <div class="ld-input">
-            <input type="text" x-model="userInput" />
+            <input type="text" x-model="userInput" x-ref="input" />
         </div>
 
         <div>userInput: <span x-text="userInput"></span></div>
@@ -73,8 +73,14 @@
                     this.stopAudio();
                     this.userInput = '';
                     this.playAttempts = 0;
+
+                    let nextAudio;
                     let files = this[this.language].files
-                    this.currentAudio = files[Math.floor(Math.random() * files.length)];
+                    do {
+                        nextAudio = files[Math.floor(Math.random() * files.length)];
+                    } while (nextAudio === this.currentAudio);
+                    this.currentAudio = nextAudio;
+
                     this.createAudioElement();
                     this.playAudio();
                 }
@@ -115,6 +121,9 @@
                 if (this.userInput === this.currentAudio.input) {
                     this.stopAudio();
                     this.playSuccess();
+                }
+                if (this.userInput && !this.currentAudio.input.startsWith(this.userInput)) {
+                    this.userInput = '';
                 }
             },
 
