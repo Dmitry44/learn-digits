@@ -3,35 +3,54 @@
 <head>
     <meta charset="UTF-8">
     <title>Learn Digits</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@picocss/pico@2.x.x/css/pico.min.css" />
+    <style>
+        .custom-container {
+            max-width: 600px;
+            margin: 0 auto;
+        }
+    </style>
     <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
 </head>
 
-<body>
-    <div class="ld-app" x-data="data">
-        <h1>Learn Digits</h1>
-        <div class="ld-toolbar">
+<body x-data="data">
+    <header class="container custom-container">
+        <hgroup>
+            <h1>Learn Digits</h1>
+            <p>Train your number recognition by listening and typing</p>
+        </hgroup>
+    </header>
 
-            <label for="ld-language">Language:</label>
-            <select id="ld-language" x-model="language">
-                <option value="en">English</option>
-                <option value="de">Deutsch</option>
-            </select>
+    <main class="container custom-container">
+        <section id="ld-app">
+            <div class="ld-options">
+                <label for="ld-language">Language:</label>
+                <select id="ld-language" x-model="language">
+                    <option value="en">English</option>
+                    <option value="de">Deutsch</option>
+                </select>
+            </div>
+            <p class="ld-toolbar grid">
+                <button @click="playing = !playing; $refs.input.focus();">
+                    <span x-show="!playing">Play</span>
+                    <span x-show="playing">Pause</span>
+                </button>
+            </p>
 
-            <button @click="playing = !playing; $refs.input.focus();">
-                <span x-show="!playing">Play</span>
-                <span x-show="playing">Pause</span>
-            </button>
+            <div class="ld-input">
+                <input type="text" x-model="userInput" x-ref="input" placeholder="Type here" />
+            </div>
 
-        </div>
+            <div>userInput: <span x-text="userInput"></span></div>
+            <div>currentAudio: <span x-text="currentAudio?.input"></span> - <span x-text="currentAudio?.file"></span></div>
 
-        <div class="ld-input">
-            <input type="text" x-model="userInput" x-ref="input" />
-        </div>
+        </section>
+    </main>
 
-        <div>userInput: <span x-text="userInput"></span></div>
-        <div>currentAudio: <span x-text="currentAudio?.input"></span> - <span x-text="currentAudio?.file"></span></div>
+    <footer class="container custom-container">
+        <small>© 2025</small>
+    </footer>
 
-    </div>
 </body>
 
 <script>
