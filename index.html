@@ -9,11 +9,20 @@
             max-width: 600px;
             margin: 0 auto;
         }
+
+        input::-webkit-outer-spin-button,
+        input::-webkit-inner-spin-button {
+            -webkit-appearance: none;
+            margin: 0;
+        }
+        input[type=number] {
+            -moz-appearance: textfield;
+        }
     </style>
     <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
 </head>
 
-<body x-data="data">
+<body x-data="data" @keydown.window.space.prevent="$refs.playButton.click()">
     <header class="container custom-container">
         <hgroup>
             <h1>Learn Digits</h1>
@@ -25,24 +34,21 @@
         <section id="ld-app">
             <div class="ld-options">
                 <label for="ld-language">Language:</label>
-                <select id="ld-language" x-model="language">
+                <select id="ld-language" x-model="language" @change="$refs.input.focus()">
                     <option value="en">English</option>
                     <option value="de">Deutsch</option>
                 </select>
             </div>
             <p class="ld-toolbar grid">
-                <button @click="playing = !playing; $refs.input.focus();">
+                <button @click="playing = !playing; $refs.input.focus();" x-ref="playButton">
                     <span x-show="!playing">Play</span>
                     <span x-show="playing">Pause</span>
                 </button>
             </p>
 
             <div class="ld-input">
-                <input type="text" x-model="userInput" x-ref="input" placeholder="Type here" />
+                <input type="number" inputmode="numeric" x-model="userInput" x-ref="input" placeholder="Type here" />
             </div>
-
-            <div>userInput: <span x-text="userInput"></span></div>
-            <div>currentAudio: <span x-text="currentAudio?.input"></span> - <span x-text="currentAudio?.file"></span></div>
 
         </section>
     </main>
@@ -97,7 +103,7 @@
                     let files = this[this.language].files
                     do {
                         nextAudio = files[Math.floor(Math.random() * files.length)];
-                    } while (nextAudio === this.currentAudio);
+                    } while (nextAudio?.input === this.currentAudio?.input);
                     this.currentAudio = nextAudio;
 
                     this.createAudioElement();
