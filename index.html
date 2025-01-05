@@ -47,7 +47,9 @@
             </p>
 
             <div class="ld-input">
-                <input type="number" inputmode="numeric" x-model="userInput" x-ref="input" placeholder="Type here" />
+                <label>
+                    <input type="number" inputmode="numeric" x-model="userInput" x-ref="input" placeholder="Type here" />
+                </label>
             </div>
 
         </section>
@@ -74,7 +76,7 @@
                 });
                 this.$watch('playing', (val) => {
                     if (val) this.loadNextAudio('init')
-                    else this.stopAudio();
+                    else this.stopCurrentAudio();
                 });
                 this.successAudio.onended = () => this.loadNextAudio('successAudio.onended');
                 this.errorAudio.onended = () => this.loadNextAudio('errorAudio.onended');
@@ -95,7 +97,7 @@
                 console.log(e, this.userInput);
                 this.nextAudioLoading = true;
                 try {
-                    this.stopAudio();
+                    this.stopCurrentAudio();
                     this.userInput = '';
                     this.playAttempts = 0;
 
@@ -107,7 +109,7 @@
                     this.currentAudio = nextAudio;
 
                     this.createAudioElement();
-                    this.playAudio();
+                    this.playCurrentAudio();
                 }
                 finally {
                     this.nextAudioLoading = false;
@@ -120,14 +122,14 @@
                 this.audioElement.onended = () => {
                     this.playAttempts++;
                     if (this.playAttempts < 3) {
-                        setTimeout(() => this.playAudio(), 1000);
+                        setTimeout(() => this.playCurrentAudio(), 1000);
                     } else {
-                        this.playError();
+                        playAudio(this.errorAudio);
                     }
                 };
             },
 
-            playAudio() {
+            playCurrentAudio() {
                 if (!this.playing) return;
                 if (this.audioElement) {
                     this.audioElement.currentTime = 0;
@@ -135,7 +137,7 @@
                 }
             },
 
-            stopAudio() {
+            stopCurrentAudio() {
                 if (this.audioElement) {
                     this.audioElement.pause();
                     this.audioElement.currentTime = 0;
@@ -144,20 +146,12 @@
 
             checkInput() {
                 if (this.userInput === this.currentAudio.input) {
-                    this.stopAudio();
-                    this.playSuccess();
+                    this.stopCurrentAudio();
+                    playAudio(this.successAudio);
                 }
                 if (this.userInput && !this.currentAudio.input.startsWith(this.userInput)) {
                     this.userInput = '';
                 }
-            },
-
-            playSuccess() {
-                playAudio(this.successAudio);
-            },
-
-            playError() {
-                playAudio(this.errorAudio);
             },
 
             en: { files:
