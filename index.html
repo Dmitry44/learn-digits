@@ -9,15 +9,6 @@
             max-width: 600px;
             margin: 0 auto;
         }
-
-        input::-webkit-outer-spin-button,
-        input::-webkit-inner-spin-button {
-            -webkit-appearance: none;
-            margin: 0;
-        }
-        input[type=number] {
-            -moz-appearance: textfield;
-        }
     </style>
     <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
 </head>
@@ -48,7 +39,7 @@
 
             <div class="ld-input">
                 <label>
-                    <input type="number" inputmode="numeric" x-model="userInput" x-ref="input" placeholder="Type here" />
+                    <input type="text" inputmode="numeric" pattern="[0-9]*" x-model="userInput" x-ref="input" placeholder="Type here" />
                 </label>
             </div>
 
@@ -75,11 +66,11 @@
                     this.checkInput();
                 });
                 this.$watch('playing', (val) => {
-                    if (val) this.loadNextAudio('init')
+                    if (val) this.loadNextAudio()
                     else this.stopCurrentAudio();
                 });
-                this.successAudio.onended = () => this.loadNextAudio('successAudio.onended');
-                this.errorAudio.onended = () => this.loadNextAudio('errorAudio.onended');
+                this.successAudio.onended = () => this.loadNextAudio();
+                this.errorAudio.onended = () => this.loadNextAudio();
             },
 
             playing: false,
@@ -90,11 +81,11 @@
             audioElement: null,
             successAudio: new Audio('audio/success.mp3'),
             errorAudio: new Audio('audio/error.mp3'),
+            audioRepeatTimeout: null,
 
             nextAudioLoading: false,
-            loadNextAudio(e) {
+            loadNextAudio() {
                 if (this.nextAudioLoading) return;
-                console.log(e, this.userInput);
                 this.nextAudioLoading = true;
                 try {
                     this.stopCurrentAudio();
@@ -122,7 +113,7 @@
                 this.audioElement.onended = () => {
                     this.playAttempts++;
                     if (this.playAttempts < 3) {
-                        setTimeout(() => this.playCurrentAudio(), 1000);
+                        this.audioRepeatTimeout = setTimeout(() => this.playCurrentAudio(), 1000);
                     } else {
                         playAudio(this.errorAudio);
                     }
@@ -138,6 +129,7 @@
             },
 
             stopCurrentAudio() {
+                if (this.audioRepeatTimeout) clearTimeout(this.audioRepeatTimeout);
                 if (this.audioElement) {
                     this.audioElement.pause();
                     this.audioElement.currentTime = 0;
