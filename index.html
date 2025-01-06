@@ -13,6 +13,7 @@
     </style>
     <link rel="icon" type="image/x-icon" href="favicon.ico">
     <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/howler@2.x.x/dist/howler.min.js"></script>
 </head>
 
 <body x-data="data" @keydown.window.space.prevent="$refs.playButton.click()">
@@ -71,8 +72,17 @@
                     if (val) this.loadNextAudio()
                     else this.stopCurrentAudio();
                 });
-                this.successAudio.onended = () => this.loadNextAudio();
-                this.errorAudio.onended = () => this.loadNextAudio();
+
+                this.successAudio = new Howl({
+                    src: ['audio/success.mp3'],
+                    preload: true,
+                    onend: () => { this.loadNextAudio(); }
+                });
+                this.errorAudio = new Howl({
+                    src: ['audio/error.mp3'],
+                    preload: true,
+                    onend: () => { this.loadNextAudio(); }
+                });
             },
 
             playing: false,
@@ -81,8 +91,8 @@
             userInput: '',
             playAttempts: 0,
             audioElement: null,
-            successAudio: new Audio('audio/success.mp3'),
-            errorAudio: new Audio('audio/error.mp3'),
+            successAudio: null,
+            errorAudio: null,
             audioRepeatTimeout: null,
 
             nextAudioLoading: false,
@@ -111,15 +121,18 @@
 
             createAudioElement() {
                 if (!this.playing) return;
-                this.audioElement = new Audio(this.currentAudio.file);
-                this.audioElement.onended = () => {
-                    this.playAttempts++;
-                    if (this.playAttempts < 3) {
-                        this.audioRepeatTimeout = setTimeout(() => this.playCurrentAudio(), 1000);
-                    } else {
-                        playAudio(this.errorAudio);
+                this.audioElement = new Howl({
+                    src: [this.currentAudio.file],
+                    preload: true,
+                    onend: () => {
+                        this.playAttempts++;
+                        if (this.playAttempts < 3) {
+                            this.audioRepeatTimeout = setTimeout(() => this.playCurrentAudio(), 1000);
+                        } else {
+                            playAudio(this.errorAudio);
+                        }
                     }
-                };
+                });
             },
 
             playCurrentAudio() {
